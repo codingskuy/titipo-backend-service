@@ -10,7 +10,7 @@ CREATE TABLE sinyal_restock (
     kedaluwarsa DATE NOT NULL,
     recipe_id TEXT,
     diterima_pada TIMESTAMPTZ NOT NULL DEFAULT now(),
-    -- Kunci dedup konsumen: item_id + tanggal.
-    UNIQUE (item_id, tanggal)
+    -- Kunci dedup konsumen: item_id + jenis + tanggal (menipis dan habis dedup terpisah).
+    UNIQUE (item_id, jenis, tanggal)
 );
 CREATE INDEX idx_sinyal_restock_diterima ON sinyal_restock (diterima_pada);

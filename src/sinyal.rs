@@ -67,11 +67,11 @@ fn periksa(raw: Value) -> Result<Sinyal, AppError> {
     Ok(s)
 }
 
-/// Catat sinyal. `true` = baru dicatat; `false` = duplikat `item_id + tanggal` (diabaikan).
+/// Catat sinyal. `true` = baru dicatat; `false` = duplikat `item_id + jenis + tanggal` (diabaikan).
 async fn catat(db: &PgPool, s: &Sinyal, sekarang: DateTime<Utc>) -> Result<bool, AppError> {
     let baru = sqlx::query(
         "INSERT INTO sinyal_restock (jenis, item_id, tanggal, item, sisa, satuan, kedaluwarsa, recipe_id, diterima_pada)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (item_id, tanggal) DO NOTHING",
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (item_id, jenis, tanggal) DO NOTHING",
     )
     .bind(&s.jenis)
     .bind(&s.item_id)
