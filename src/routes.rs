@@ -1,4 +1,4 @@
-use crate::{auth::AuthUser, pesanan::handlers, state::AppState};
+use crate::{auth::AuthUser, pesanan::handlers, sinyal, state::AppState};
 use axum::{
     routing::{get, post},
     Json, Router,
@@ -41,6 +41,7 @@ pub fn app(state: AppState) -> Router {
     Router::new()
         .route("/healthz", get(healthz))
         .route("/v1/contoh", get(contoh))
+        .route("/sinyal/pedaree-stok", post(sinyal::terima))
         .route("/pesanan", post(handlers::buat))
         .route("/pesanan/{kode}/bayar", post(handlers::bayar))
         .route("/vendor/pesanan/{kode}/konfirmasi", post(handlers::konfirmasi_vendor))

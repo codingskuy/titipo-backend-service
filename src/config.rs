@@ -19,6 +19,8 @@ pub struct Config {
     pub jwks_ttl: Duration,
     pub toleransi_jam: u64,
     pub kunci_layanan: Vec<KunciLayanan>,
+    /// Service key Pedaree (header `X-Service-Key`), least-privilege: hanya untuk sinyal `pedaree.stok.v1`.
+    pub kunci_pedaree: Vec<KunciLayanan>,
     pub lumbung_base_url: String,
     pub alamat: String,
     /// Batas berat total per pesanan (gram); di atasnya 422. KONFIGURABEL karena dokumen bertentangan
@@ -59,6 +61,15 @@ impl Config {
             jwks_ttl: Duration::from_secs(600),
             toleransi_jam: 60,
             kunci_layanan: kunci,
+            kunci_pedaree: std::env::var("PEDAREE_SERVICE_KEY")
+                .ok()
+                .filter(|k| !k.is_empty())
+                .map(|nilai| KunciLayanan {
+                    nilai,
+                    berlaku_sampai: None,
+                })
+                .into_iter()
+                .collect(),
             lumbung_base_url: env_atau("LUMBUNG_BASE_URL", "https://api.lumbung.skuy"),
             alamat: env_atau("TITIPO_BIND", "0.0.0.0:8080"),
             batas_berat_gram: env_atau("BATAS_BERAT_GRAM", "50000")
@@ -78,6 +89,10 @@ impl Config {
             toleransi_jam: 60,
             kunci_layanan: vec![KunciLayanan {
                 nilai: "kunci-uji-utama".into(),
+                berlaku_sampai: None,
+            }],
+            kunci_pedaree: vec![KunciLayanan {
+                nilai: "kunci-pedaree-uji".into(),
                 berlaku_sampai: None,
             }],
             lumbung_base_url: "http://lumbung.uji.invalid".into(),

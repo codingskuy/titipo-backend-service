@@ -17,6 +17,7 @@ pub struct AppState {
     pub config: Arc<Config>,
     pub jwks: Arc<JwksCache>,
     pub keyring: Arc<Keyring>,
+    pub keyring_pedaree: Arc<Keyring>,
     /// Jam sistem; dapat diganti di uji.
     pub jam: Jam,
 }
@@ -44,11 +45,13 @@ impl AppState {
     pub fn dengan_fetcher(db: PgPool, config: Config, fetcher: Arc<dyn JwksFetcher>) -> Self {
         let jwks = Arc::new(JwksCache::baru(fetcher, config.jwks_ttl));
         let keyring = Arc::new(Keyring::baru(config.kunci_layanan.clone()));
+        let keyring_pedaree = Arc::new(Keyring::baru(config.kunci_pedaree.clone()));
         Self {
             db,
             config: Arc::new(config),
             jwks,
             keyring,
+            keyring_pedaree,
             jam: Arc::new(Utc::now),
         }
     }

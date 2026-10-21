@@ -7,6 +7,7 @@ pub mod lumbung;
 pub mod pesanan;
 pub mod pesanan_repo;
 pub mod routes;
+pub mod sinyal;
 pub mod state;
 
 pub use routes::app;

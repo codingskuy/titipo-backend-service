@@ -138,3 +138,17 @@ impl FromRequestParts<AppState> for LayananSah {
         Ok(LayananSah)
     }
 }
+
+/// Extractor sinyal Pedaree: header `X-Service-Key` (kunci least-privilege milik Pedaree).
+#[derive(Debug, Clone, Copy)]
+pub struct PengirimPedaree;
+
+impl FromRequestParts<AppState> for PengirimPedaree {
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, AppError> {
+        let nilai = parts.headers.get("X-Service-Key").and_then(|v| v.to_str().ok());
+        state.keyring_pedaree.verifikasi(nilai, chrono::Utc::now())?;
+        Ok(PengirimPedaree)
+    }
+}
