@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API TitipO — ChefGenie
-  version: 1.0.0
+  version: 1.0.1
   summary: Kontrak HTTP TitipO v1.0.0 (titip belanja harian rumah tangga ke vendor terpercaya).
   description: |
     Kontrak diturunkan dari TitipO-TownHall `platform/versions/v1.0.0/FSD/30-kontrak.md`,
@@ -328,6 +328,8 @@ paths:
       tags: [Admin]
       operationId: adminDaftarVendor
       summary: Antrean kurasi vendor
+      description: |
+        Validasi query: `status` hanya salah satu nilai `StatusVendor`; nilai lain (mis. `AAA`) dan nilai kosong (`status=`) ditolak `422`. Tanpa parameter `status` = semua status. `batas` di luar 1..50 ditolak `422`; `batas` bukan bilangan bulat ditolak `400`.
       parameters:
         - { name: status, in: query, schema: { $ref: '#/components/schemas/StatusVendor' }, example: calon }
         - $ref: '#/components/parameters/Batas'
@@ -348,8 +350,10 @@ paths:
               example:
                 data: [{ id: V-BUDI-002, nama: Warung Budi, status: calon, skor_kebersihan: 85, dokumen: [ktp.jpg, lapak1.jpg] }]
                 lanjut: null
+        '400': { $ref: '#/components/responses/Permintaan' }
         '401': { $ref: '#/components/responses/Tidakterotorisasi' }
         '403': { $ref: '#/components/responses/Dilarang' }
+        '422': { $ref: '#/components/responses/Validasi' }
         '429': { $ref: '#/components/responses/TerlaluBanyak' }
         '500': { $ref: '#/components/responses/ErrorServer' }
 
@@ -421,6 +425,8 @@ paths:
       tags: [Admin]
       operationId: adminDaftarPesanan
       summary: Pantau pesanan harian
+      description: |
+        Validasi query: `status` hanya salah satu nilai `StatusPesanan`; nilai lain (mis. `AAA`) dan nilai kosong (`status=`) ditolak `422`. Tanpa parameter `status` = semua status. `hari` bukan tanggal ISO (`YYYY-MM-DD`) ditolak `400`; `batas` di luar 1..50 ditolak `422`, bukan bilangan bulat `400`.
       parameters:
         - { name: status, in: query, schema: { $ref: '#/components/schemas/StatusPesanan' }, example: disiapkan }
         - { name: hari, in: query, schema: { type: string, format: date }, example: '2026-01-07' }
@@ -450,8 +456,10 @@ paths:
                 data: []
                 agregat: { total: 132, terlambat: 4, batal: 1 }
                 lanjut: null
+        '400': { $ref: '#/components/responses/Permintaan' }
         '401': { $ref: '#/components/responses/Tidakterotorisasi' }
         '403': { $ref: '#/components/responses/Dilarang' }
+        '422': { $ref: '#/components/responses/Validasi' }
         '429': { $ref: '#/components/responses/TerlaluBanyak' }
         '500': { $ref: '#/components/responses/ErrorServer' }
 
@@ -770,7 +778,7 @@ components:
         detail: { type: object, additionalProperties: true }
   responses:
     Permintaan:
-      description: 400 — permintaan tidak valid (format/berkas salah).
+      description: 400 — permintaan tidak valid (format salah: tipe parameter/JSON/berkas tak terbaca).
       content:
         application/json:
           schema: { $ref: '#/components/schemas/AppError' }
@@ -796,7 +804,7 @@ components:
           schema: { $ref: '#/components/schemas/AppError' }
           example: { kode: KATALOG_KEDALUWARSA, pesan: Snapshot katalog lebih dari 24 jam, detail: {} }
     Validasi:
-      description: 422 — validasi gagal, mis. lebih dari 20 kg, lebih dari 50 baris, lewat 20.00, transisi status ilegal, alihkan lebih dari 2 kali.
+      description: 422 — validasi gagal, mis. nilai enum query tak dikenal (`status=AAA`) atau kosong, lebih dari 20 kg, lebih dari 50 baris, lewat 20.00, transisi status ilegal, alihkan lebih dari 2 kali.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/AppError' }
