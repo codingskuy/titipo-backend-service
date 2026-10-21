@@ -535,6 +535,7 @@ paths:
         - Kunci idempoten konsumen: `item_id + tanggal`. Duplikat dijawab `200 {"status":"duplikat_diabaikan"}` (bukan galat). Produsen mengirim maksimal 1 per item per 24 jam.
         - Sifat: **anjuran restock saja**. Sinyal menjadi daftar saran di aplikasi vendor dan bahan pertimbangan katalog; **tidak pernah membuat pesanan otomatis**. Relevansi anjuran 48 jam.
         - `recipe_id` Pawonee boleh kosong dan hanya diteruskan untuk tampilan.
+        - Galat 422: `JENIS_SINYAL_TIDAK_DIKENAL`, `SATUAN_TIDAK_VALID` (satuan di luar 13 baku), `PAYLOAD_SINYAL_TIDAK_VALID` (field wajib hilang/salah tipe, `sisa` negatif). 400 hanya untuk JSON rusak. Tanpa `X-Service-Key` 401, kunci salah 403.
       security:
         - serviceKeyPedaree: []
       requestBody:

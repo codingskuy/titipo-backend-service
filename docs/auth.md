@@ -57,3 +57,5 @@ DATABASE_URL=postgres://titipo:titipo@localhost:5432/titipo
 - Variabel tambahan: `LUMBUNG_BASE_URL` (klien keluar ke Lumbung), `TITIPO_BIND` (default `0.0.0.0:8080`).
 - Cakupan data (`Skup`): `household` dibatasi `sub` = id rumah tangga; `vendor` dibatasi klaim `vendor_id` (ASUMSI: opsional, bila kosong memakai `sub`); `admin` semua (tulis); `operasi` semua (baca saja, sesuai openapi).
 - TTL token ditentukan penerbit (Lumbung); TitipO hanya memverifikasi `exp`. Standar KONTEKS/AGENTS: akses 15 menit + refresh 7 hari; angka "JWT 24 jam" pada FSD tidak dipakai di sini.
+
+- Sinyal Pedaree (`POST /sinyal/pedaree-stok`) memakai kunci terpisah `PEDAREE_SERVICE_KEY` (header `X-Service-Key`), tidak berlaku di rute lain; JWT dan `X-Titipo-Service-Key` tidak diterima di endpoint ini.
