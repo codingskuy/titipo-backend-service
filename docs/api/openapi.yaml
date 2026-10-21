@@ -778,7 +778,7 @@ components:
         detail: { type: object, additionalProperties: true }
   responses:
     Permintaan:
-      description: 400 — permintaan tidak valid (format salah: tipe parameter/JSON/berkas tak terbaca).
+      description: 400 — permintaan tidak valid (format salah, mis. tipe parameter, JSON, atau berkas tak terbaca).
       content:
         application/json:
           schema: { $ref: '#/components/schemas/AppError' }
