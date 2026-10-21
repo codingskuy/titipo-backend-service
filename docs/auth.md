@@ -48,3 +48,12 @@ DATABASE_URL=postgres://titipo:titipo@localhost:5432/titipo
 | `GET /v1/contoh` | token | token | token |
 | `pesanan/*` (nanti) | buat/baca miliknya | baca/terima lapaknya | semua |
 | `langganan/*` (nanti) | kelola miliknya | baca pelanggannya | semua |
+
+## 5. Implementasi (TTP-BE-003)
+
+- Hanya RS256; algoritma lain ditolak 401. Pemetaan galat: tanpa token `TOKEN_TIDAK_ADA` 401, token kedaluwarsa `TOKEN_KEDALUWARSA` 401, audiens bukan `titipo` `AUDIENS_SALAH` 403, peran tak berhak `PERAN_DITOLAK` 403.
+- Cache JWKS 10 menit; `kid` tak dikenal memicu satu refresh (rotasi kunci Lumbung) dengan jeda minimum 30 detik.
+- Rotasi service key: `TITIPO_SERVICE_KEY` (aktif) dan opsional `TITIPO_SERVICE_KEY_PREV` + `TITIPO_SERVICE_KEY_PREV_SAMPAI` (RFC 3339, maks 7 hari setelah rotasi). Tanpa header 401 `SERVICE_KEY_TIDAK_ADA`, salah 403 `SERVICE_KEY_SALAH`.
+- Variabel tambahan: `LUMBUNG_BASE_URL` (klien keluar ke Lumbung), `TITIPO_BIND` (default `0.0.0.0:8080`).
+- Cakupan data (`Skup`): `household` dibatasi `sub` = id rumah tangga; `vendor` dibatasi klaim `vendor_id` (ASUMSI: opsional, bila kosong memakai `sub`); `admin` semua (tulis); `operasi` semua (baca saja, sesuai openapi).
+- TTL token ditentukan penerbit (Lumbung); TitipO hanya memverifikasi `exp`. Standar KONTEKS/AGENTS: akses 15 menit + refresh 7 hari; angka "JWT 24 jam" pada FSD tidak dipakai di sini.
