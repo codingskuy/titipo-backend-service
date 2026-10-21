@@ -213,18 +213,26 @@ fn rotasi_dua_kunci_aktif_lalu_kunci_lama_gugur() {
 // ---------- Peran vs data (sqlx::test) ----------
 
 async fn isi_pesanan(db: &PgPool) {
-    for (rt, vendor) in [
+    for (i, (rt, vendor)) in [
         ("RT-001", "V-SARI"),
         ("RT-001", "V-BUDI"),
         ("RT-002", "V-SARI"),
         ("RT-003", "V-BUDI"),
-    ] {
-        sqlx::query("INSERT INTO pesanan (id_rumah_tangga, id_vendor, jadwal_titip) VALUES ($1, $2, CURRENT_DATE + 1)")
-            .bind(rt)
-            .bind(vendor)
-            .execute(db)
-            .await
-            .unwrap();
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        sqlx::query(
+            "INSERT INTO pesanan (kode, id_klien, idempotency_key, request_hash, id_rumah_tangga, id_vendor, status,
+                 total_item, ongkir, total_bayar, berat_gram, jadwal_serah, kedaluwarsa_bayar)
+             VALUES ($1, 'K', $1, 'h', $2, $3, 'menunggu_pembayaran', 1000, 5000, 6000, 100, CURRENT_DATE + 1, now())",
+        )
+        .bind(format!("T-2026-{:06}", i + 1))
+        .bind(rt)
+        .bind(vendor)
+        .execute(db)
+        .await
+        .unwrap();
     }
 }
 

@@ -5,8 +5,11 @@ use crate::{
     },
     config::Config,
 };
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use std::sync::Arc;
+
+pub type Jam = Arc<dyn Fn() -> DateTime<Utc> + Send + Sync>;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -14,9 +17,20 @@ pub struct AppState {
     pub config: Arc<Config>,
     pub jwks: Arc<JwksCache>,
     pub keyring: Arc<Keyring>,
+    /// Jam sistem; dapat diganti di uji.
+    pub jam: Jam,
 }
 
 impl AppState {
+    pub fn dengan_jam(mut self, jam: Jam) -> Self {
+        self.jam = jam;
+        self
+    }
+
+    pub fn sekarang(&self) -> DateTime<Utc> {
+        (self.jam)()
+    }
+
     /// Susun state produksi: JWKS lewat HTTP ke Lumbung.
     pub fn dari_config(db: PgPool, config: Config) -> Self {
         let fetcher: Arc<dyn JwksFetcher> = Arc::new(HttpJwksFetcher {
@@ -35,6 +49,7 @@ impl AppState {
             config: Arc::new(config),
             jwks,
             keyring,
+            jam: Arc::new(Utc::now),
         }
     }
 }

@@ -1,5 +1,8 @@
-use crate::{auth::AuthUser, state::AppState};
-use axum::{routing::get, Json, Router};
+use crate::{auth::AuthUser, pesanan::handlers, state::AppState};
+use axum::{
+    routing::{get, post},
+    Json, Router,
+};
 use serde::Serialize;
 use std::time::Duration;
 use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
@@ -38,6 +41,10 @@ pub fn app(state: AppState) -> Router {
     Router::new()
         .route("/healthz", get(healthz))
         .route("/v1/contoh", get(contoh))
+        .route("/pesanan", post(handlers::buat))
+        .route("/pesanan/{kode}/bayar", post(handlers::bayar))
+        .route("/vendor/pesanan/{kode}/konfirmasi", post(handlers::konfirmasi_vendor))
+        .route("/admin/pesanan/{kode}/alihkan", post(handlers::alihkan))
         .layer(TimeoutLayer::with_status_code(
             axum::http::StatusCode::REQUEST_TIMEOUT,
             Duration::from_secs(30),

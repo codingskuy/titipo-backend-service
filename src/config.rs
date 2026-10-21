@@ -21,6 +21,9 @@ pub struct Config {
     pub kunci_layanan: Vec<KunciLayanan>,
     pub lumbung_base_url: String,
     pub alamat: String,
+    /// Batas berat total per pesanan (gram); di atasnya 422. KONFIGURABEL karena dokumen bertentangan
+    /// (FSD/openapi: 20 kg; AGENTS/KONTEKS: 50 kg). Bawaan mengikuti AGENTS/KONTEKS.
+    pub batas_berat_gram: i64,
 }
 
 fn env_atau(nama: &str, bawaan: &str) -> String {
@@ -58,6 +61,9 @@ impl Config {
             kunci_layanan: kunci,
             lumbung_base_url: env_atau("LUMBUNG_BASE_URL", "https://api.lumbung.skuy"),
             alamat: env_atau("TITIPO_BIND", "0.0.0.0:8080"),
+            batas_berat_gram: env_atau("BATAS_BERAT_GRAM", "50000")
+                .parse()
+                .map_err(|_| "BATAS_BERAT_GRAM harus bilangan bulat (gram)".to_string())?,
         })
     }
 
@@ -76,6 +82,7 @@ impl Config {
             }],
             lumbung_base_url: "http://lumbung.uji.invalid".into(),
             alamat: "127.0.0.1:0".into(),
+            batas_berat_gram: 50_000,
         }
     }
 }

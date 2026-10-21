@@ -4,6 +4,7 @@ pub mod auth;
 pub mod config;
 pub mod error;
 pub mod lumbung;
+pub mod pesanan;
 pub mod pesanan_repo;
 pub mod routes;
 pub mod state;
