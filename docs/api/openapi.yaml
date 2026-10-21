@@ -131,6 +131,8 @@ paths:
       description: |
         Membuat pesanan berstatus `menunggu_pembayaran`. Batas: 1 vendor, maksimal 20 kg dan 50 baris; SKU harus ada di snapshot katalog yang umurnya tidak lebih dari 24 jam; pesan hanya sampai pukul 20.00.
         Pembayaran QRIS kedaluwarsa 15 menit.
+
+        Batas berat total dikonfigurasi server (`BATAS_BERAT_GRAM`, bawaan 50.000 g mengikuti AGENTS/KONTEKS; FSD menyebut 20 kg) — lihat ADR-0002. Kunci `Idempotency-Key` yang sama dengan isi berbeda dijawab `409 IDEMPOTENCY_KEY_BENTROK`. Kode galat 422: `BERAT_MELEBIHI_BATAS`, `BARIS_MELEBIHI_BATAS`, `DI_LUAR_JAM_PESAN`, `SKU_TIDAK_ADA`, `ITEM_KOSONG`, `SKU_DUPLIKAT`; 409: `KATALOG_KEDALUWARSA`, `STOK_HABIS`.
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
