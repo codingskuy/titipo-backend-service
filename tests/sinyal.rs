@@ -38,9 +38,9 @@ async fn sinyal_sah_dicatat_201_dan_duplikat_200(db: PgPool) {
     let app = app_pada(db.clone(), t0());
     let (s, b) = panggil(&app, kirim(Some(KUNCI), contoh())).await;
     assert_eq!((s, b["status"].as_str().unwrap()), (201, "dicatat_sebagai_anjuran"));
-    // Duplikat item_id + tanggal: 200 duplikat_diabaikan (bukan galat), tanpa rekaman ganda.
+    // Duplikat item_id + jenis + tanggal: 200 duplikat_diabaikan (bukan galat), tanpa rekaman ganda.
     let mut dup = contoh();
-    dup["sisa"] = json!(10); // isi lain boleh beda; kunci dedup item_id + tanggal
+    dup["sisa"] = json!(10); // isi lain boleh beda; kunci dedup item_id + jenis + tanggal
     let (s, b) = panggil(&app, kirim(Some(KUNCI), dup)).await;
     assert_eq!((s, b["status"].as_str().unwrap()), (200, "duplikat_diabaikan"));
     let n: i64 = sqlx::query_scalar("SELECT count(*) FROM sinyal_restock")
@@ -185,4 +185,32 @@ async fn saran_relevan_48_jam(db: PgPool) {
         (s.item_id.as_str(), s.satuan.as_str(), s.sisa),
         ("ITM-CABAI-001", "gram", 150.0)
     );
+}
+
+#[sqlx::test]
+async fn menipis_pagi_lalu_habis_sore_keduanya_diterima(db: PgPool) {
+    let pagi = Utc.with_ymd_and_hms(2026, 10, 14, 1, 0, 0).unwrap(); // 08.00 WIB
+    let sore = Utc.with_ymd_and_hms(2026, 10, 14, 12, 0, 0).unwrap(); // 19.00 WIB
+    let menipis = contoh();
+    let mut habis = contoh();
+    habis["jenis"] = json!("stok.habis");
+    habis["sisa"] = json!(0);
+
+    let (s, b) = panggil(&app_pada(db.clone(), pagi), kirim(Some(KUNCI), menipis.clone())).await;
+    assert_eq!((s, b["status"].as_str().unwrap()), (201, "dicatat_sebagai_anjuran"));
+    let app_sore = app_pada(db.clone(), sore);
+    let (s, b) = panggil(&app_sore, kirim(Some(KUNCI), habis.clone())).await;
+    assert_eq!((s, b["status"].as_str().unwrap()), (201, "dicatat_sebagai_anjuran"));
+
+    // Ulang jenis yang sama di hari yang sama tetap duplikat_diabaikan.
+    let (s, b) = panggil(&app_sore, kirim(Some(KUNCI), habis)).await;
+    assert_eq!((s, b["status"].as_str().unwrap()), (200, "duplikat_diabaikan"));
+    let (s, b) = panggil(&app_sore, kirim(Some(KUNCI), menipis)).await;
+    assert_eq!((s, b["status"].as_str().unwrap()), (200, "duplikat_diabaikan"));
+
+    let n: i64 = sqlx::query_scalar("SELECT count(*) FROM sinyal_restock WHERE item_id = 'ITM-CABAI-001'")
+        .fetch_one(&db)
+        .await
+        .unwrap();
+    assert_eq!(n, 2);
 }
