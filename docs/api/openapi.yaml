@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API TitipO — ChefGenie
-  version: 1.0.0
+  version: 1.0.2
   summary: Kontrak HTTP TitipO v1.0.0 (titip belanja harian rumah tangga ke vendor terpercaya).
   description: |
     Kontrak diturunkan dari TitipO-TownHall `platform/versions/v1.0.0/FSD/30-kontrak.md`,
@@ -532,7 +532,7 @@ paths:
         Endpoint penerima kontrak bilateral `pedaree.stok.v1` (Pedaree → TitipO, TitipO satu-satunya konsumen). Bukan bagian registry 11 event Titeny.
 
         - Jenis terkunci (3): `stok.menipis`, `stok.habis`, `kedaluwarsa.dekat`. Jenis lain ditolak `422 JENIS_SINYAL_TIDAK_DIKENAL`.
-        - Kunci idempoten konsumen: `item_id + tanggal`. Duplikat dijawab `200 {"status":"duplikat_diabaikan"}` (bukan galat). Produsen mengirim maksimal 1 per item per 24 jam.
+        - Kunci idempoten konsumen: `item_id + jenis + tanggal` (ADR-0005); `stok.menipis` dan `stok.habis` pada item dan hari yang sama keduanya diterima. Duplikat dijawab `200 {"status":"duplikat_diabaikan"}` (bukan galat). Produsen mengirim maksimal 1 per item per jenis per 24 jam.
         - Sifat: **anjuran restock saja**. Sinyal menjadi daftar saran di aplikasi vendor dan bahan pertimbangan katalog; **tidak pernah membuat pesanan otomatis**. Relevansi anjuran 48 jam.
         - `recipe_id` Pawonee boleh kosong dan hanya diteruskan untuk tampilan.
         - Galat 422: `JENIS_SINYAL_TIDAK_DIKENAL`, `SATUAN_TIDAK_VALID` (satuan di luar 13 baku), `PAYLOAD_SINYAL_TIDAK_VALID` (field wajib hilang/salah tipe, `sisa` negatif). 400 hanya untuk JSON rusak. Tanpa `X-Service-Key` 401, kunci salah 403.
@@ -554,7 +554,7 @@ paths:
               recipe_id: null
       responses:
         '200':
-          description: Sinyal duplikat (kunci `item_id + tanggal` sudah ada); diabaikan tanpa efek.
+          description: Sinyal duplikat (kunci `item_id + jenis + tanggal` sudah ada); diabaikan tanpa efek.
           content:
             application/json:
               schema:
@@ -741,8 +741,9 @@ components:
         jenis:
           type: string
           enum: [stok.menipis, stok.habis, kedaluwarsa.dekat]
+          description: Bagian kedua kunci idempoten (`item_id + jenis + tanggal`).
         item_id: { type: string, description: Bagian pertama kunci idempoten. }
-        tanggal: { type: string, format: date, description: Bagian kedua kunci idempoten (`item_id + tanggal`). }
+        tanggal: { type: string, format: date, description: Bagian ketiga kunci idempoten (`item_id + jenis + tanggal`). }
         item: { type: string }
         sisa: { type: number, minimum: 0 }
         satuan: { $ref: '#/components/schemas/Satuan' }
